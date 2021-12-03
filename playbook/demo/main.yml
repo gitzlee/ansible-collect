@@ -1,25 +1,24 @@
 ---
-## ansible-playbook -i hosts-${env} main.yml -e env=${env} -e rke_update_only=True -vv ##
-- name: demo conf
+- name: demo
   hosts: demo
-  gather_facts: yes
+  gather_facts: no
   become: yes
   become_user: root
   become_method: sudo
 
   vars:
-    rke_update_only: False
-    rke_force_uninstall: False
+    netstat: True
 
   pre_tasks:
     - name: Load variables
       include_vars: vars/main.yml
 
   roles:
-    - {role: hostname, when: not rke_force_uninstall}
+    - {role: checkdir}
+    - {role: addconf}
 
   tasks:
     - block:
-        - include_tasks: tasks/create_file.yml
-      when: not rke_force_uninstall
+        - include_tasks: tasks/netstat.yaml
+      when:  netstat
 

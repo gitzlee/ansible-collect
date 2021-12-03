@@ -9,5 +9,5 @@ ansible_ssh_pass=******
 
 
 [demo]
-zilipy ansible_ssh_host=192.168.3.130 ansible_ssh_port=22130
+192.168.3.130 ansible_ssh_host=192.168.3.130 ansible_ssh_port=22130
 

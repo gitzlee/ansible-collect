@@ -1,0 +1,7 @@
+- name: "get netstat"
+  shell: netstat -lntp
+  register: netstat
+
+- name: "print netstat stdout"
+  debug:
+    msg: "{{netstat['stdout_lines']}}"

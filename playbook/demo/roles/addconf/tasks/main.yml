@@ -2,7 +2,7 @@
 - name: demo file
   template:
     src: demo.conf.j2
-    dest: "{{ demo_file_dir }}/{{item.cname}}.conf"
+    dest: "{{ demo_file_dir }}/{{ item.name }}.conf"
     owner: root
     group: root
     force: yes

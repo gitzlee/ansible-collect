@@ -1,0 +1,8 @@
+---
+- name: check dir
+  stat:
+    path: "{{ demo_file_dir }}"
+  register: demo_dir_stat
+- name: print dir stat
+  debug:
+    msg: "{{ demo_dir_stat.stat.exists }}"

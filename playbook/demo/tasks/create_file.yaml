@@ -1,5 +1,0 @@
-- name: check dir
-  - name: Task name
-    stat:
-      path: "{{ demo_file_dir }}"
-    register: demo_dir_stat

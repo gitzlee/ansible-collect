@@ -2,7 +2,7 @@
 #demo_file_dir: "/tmp"
 
 demo_file_data:
-  - name: dpa-ansible-demo
+  - name: demo
     sites:
     - domain: jkstack.com
       cname: jkstack
