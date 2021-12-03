@@ -1,0 +1,65 @@
+---
+- name: Stop firewalld
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+  when: not firewalld_enabled or firewalld_enabled is undefined
+
+- name: Ensure firewalld is started
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+  when: firewalld_enabled
+
+# The trusted zone allows all traffic
+# - name: Allow all traffic from cluster CIDR
+#   firewalld:
+#     zone: trusted
+#     source: "{{ cluster_cidr }}"
+#     state: enabled
+#     immediate: yes
+#     permanent: yes
+#   when: firewalld_enabled
+
+- name: Master nodes - Inbound rules
+  firewalld:
+    port: "{{ item }}"
+    permanent: True
+    immediate: True
+    state: enabled
+  loop: "{{ k8s_master_ports }}"
+  when:
+    - firewalld_enabled
+    - "'masters' in group_names"
+
+- name: Etcd nodes - Inbound rules
+  firewalld:
+    port: "{{ item }}"
+    permanent: True
+    immediate: True
+    state: enabled
+  loop: "{{ k8s_etcd_ports }}"
+  when:
+    - firewalld_enabled
+    - "'etcd' in group_names"
+
+- name: Worker nodes - Inbound rules
+  firewalld:
+    port: "{{ item }}"
+    permanent: True
+    immediate: True
+    state: enabled
+  loop: "{{ k8s_worker_ports }}"
+  when:
+    - firewalld_enabled
+    - "'workers' in group_names"
+
+- name: Enable masquerade
+  firewalld:
+    masquerade: 'yes'
+    permanent: True
+    immediate: True
+    state: enabled
+  when: firewalld_enabled

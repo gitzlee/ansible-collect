@@ -1,0 +1,15 @@
+---
+- name: Get module settings persisted to file
+  lineinfile: 
+    dest: /etc/modules-load.d/containerd.conf
+    line: "{{ item }}"
+    state: present
+    create: yes
+  with_items: "{{ kernel_modules }}"
+
+- name: Enable kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  ignore_errors: True
+  with_items: "{{ kernel_modules }}"

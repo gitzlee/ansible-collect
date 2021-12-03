@@ -1,0 +1,14 @@
+---
+docker_repo: "https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo"
+docker_version: "20.10.8"
+docker_options:
+  #bip: "172.17.0.1/16"
+  exec-opts: ["native.cgroupdriver=systemd"]
+  data-root: "/data/docker"
+  log-driver: "json-file"
+  log-opts: {"max-size": "50m", "max-file": "2"}
+  storage-driver: "overlay2"
+  storage-opts: ["overlay2.override_kernel_check=true"]
+  default-ulimits: {"nofile": {"Name": "nofile", "Hard": 524288, "Soft": 524288}}
+  insecure-registries: ["http://harbor.jkservice.org"]
+  registry-mirrors: ["http://f1361db2.m.daocloud.io","https://ustc-edu-cn.mirror.aliyuncs.com"]

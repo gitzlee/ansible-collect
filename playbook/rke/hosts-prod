@@ -1,0 +1,29 @@
+# Define localhost to use local connection
+localhost ansible_connection=local
+
+
+# User defined host inventory
+[k8s:vars]
+ansible_user=root
+ansible_ssh_pass=******
+
+[k8s:children]
+masters
+etcd
+workers
+
+[masters]
+prod-k8s-master-01 ansible_connection=local  #ansible_ssh_host=192.168.1.161
+prod-k8s-master-02 ansible_ssh_host=192.168.1.162
+prod-k8s-master-03 ansible_ssh_host=192.168.1.163
+
+[etcd]
+prod-k8s-master-01 ansible_connection=local  #ansible_ssh_host=192.168.1.161
+prod-k8s-master-02 ansible_ssh_host=192.168.1.162
+prod-k8s-master-03 ansible_ssh_host=192.168.1.163
+
+[workers]
+prod-k8s-worker-01 ansible_ssh_host=192.168.1.164
+prod-k8s-worker-02 ansible_ssh_host=192.168.1.165
+prod-k8s-worker-03 ansible_ssh_host=192.168.1.166
+prod-k8s-worker-04 ansible_ssh_host=192.168.1.167

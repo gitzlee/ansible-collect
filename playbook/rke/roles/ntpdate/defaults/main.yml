@@ -1,0 +1,3 @@
+---
+ntp_timezone: "Asia/Shanghai"
+ntp_server: ntp1.aliyun.com

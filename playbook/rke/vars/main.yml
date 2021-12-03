@@ -1,0 +1,52 @@
+---
+# vars file for k8s_rke
+rke_user: jkstack  # User that will be used to connect on nodes during the installation proccess.
+rke_controller_node: "{{ groups['masters'] | first }}"  # Node that will be used to deploy cluster using RKE.
+rke_network_plugin: flannel
+rke_cluster_network_cidr: "{{ rke_cluster_network_cidr }}"  # CIDR pool used to assign IP addresses to pods in the cluster.
+rke_service_network_cidr: "{{ rke_service_network_cidr }}"  # This is the virtual IP address that will be assigned to services created on Kubernetes.
+rke_version: v1.2.11
+rke_kubernetes_version: v1.20.9-rancher1-1
+rke_binary_url: https://download.fastgit.org/rancher/rke/releases/download/{{ rke_version }}/rke_linux-amd64 # Github releases address mirror.
+kubectl_binary_url: "https://dl.k8s.io/release/{{ rke_kubernetes_version.split('-')[0] }}/bin/linux/amd64/kubectl"
+rke_ignore_docker_version: true
+rke_addon_job_timeout: 60
+rke_node_groups:
+  - name: masters
+    role:
+      - controlplane
+  - name: etcd
+    role:
+      - etcd
+  - name: workers
+    role:
+      - worker
+
+rke_authentication:
+  - "{{ rke_authentication_ip }}"
+  - "{{ rke_authentication_domain }}"
+
+# rke_ingress_config:
+#   provider: nginx
+#   dns_policy: ClusterFirstWithHostNet
+
+rke_dns_provider: coredns
+# rke_dns_upstreamnameservers:
+  # - {{ private_dns }}
+
+rke_dedicated_node: |
+  {
+    "labels": {
+      "{{ rke_dedicated_node_role_key }}": true
+    },
+    "taints": [
+      {
+        "key": "{{ rke_dedicated_node_role_key }}",
+        "value": true,
+        "effect": "NoSchedule"
+      }
+    ]
+  }
+
+rke_dedicated_node_role_key: "node-role.kubernetes.io/{{ rke_dedicated_node_role_name | default('') }}"
+

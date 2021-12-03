@@ -1,0 +1,22 @@
+- name: Ensure SELinux is disabled
+  selinux:
+    state: disabled
+
+- name: Set SELinux in permissive mode
+  command: setenforce permissive
+  changed_when: False
+  when:
+    - ansible_selinux is defined
+    - ansible_selinux.status | default ('') == 'enabled'
+    - ansible_selinux.type | default ('') == 'targeted'
+    - ansible_selinux.mode | default ('') != 'permissive'
+
+- name: Set SELinux in permissive mode on boot
+  selinux:
+    policy: targeted
+    state: permissive
+  when:
+    - ansible_selinux is defined
+    - ansible_selinux.status | default ('') == 'enabled'
+    - ansible_selinux.type | default ('') == 'targeted'
+    - ansible_selinux.mode | default ('') != 'permissive'

@@ -1,0 +1,91 @@
+---
+- name: Install required packages
+  package:
+    name:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+    state: present
+
+- name: Retrieve Docker repo
+  get_url:
+    url: "{{ docker_repo }}"
+    dest: /etc/yum.repos.d/docker-ce.repo
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Install Docker CE
+  package:
+    name:
+      - "docker-ce{{ (docker_version | length > 0) | ternary('-' + docker_version, '') }}"
+      - "docker-ce-cli{{ (docker_version | length > 0) | ternary('-' + docker_version, '') }}"
+      - containerd.io
+    state: present
+
+- name: Check directory /data/docker if exists
+  stat:
+    path: /data/docker
+  register: stat_result
+
+- name: Create directory /data/docker
+  file:
+    path: /data/docker
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    recurse: yes
+  when: not stat_result.stat.exists
+
+- name: Check directory /etc/docker if exists
+  stat:
+    path: /etc/docker
+  register: stat_result
+
+- name: Create directory /etc/docker
+  file:
+    path: /etc/docker
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: not stat_result.stat.exists
+
+- name: Set up the Docker daemon options
+  template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: '0644'
+  register: docker_daemon_json_state
+
+- name: Enable and start Docker service
+  systemd:
+    name: docker
+    enabled: yes
+    state: "{{ (docker_daemon_json_state is changed) | ternary('restarted', 'started') }}"
+    daemon_reload: yes
+
+- name: Install iptables packages
+  package:
+    name:
+      - iptables
+      - iptables-services
+    state: present
+  register: result
+  until: result is succeeded
+  when: ansible_os_family == 'RedHat'
+
+# - name: Set the policy for the DOCKER-USER chain to ACCEPT
+#   iptables:
+#     chain: DOCKER-USER
+#     action: insert
+#     rule_num: '1'
+#     jump: ACCEPT
+
+- name: Save iptables
+  shell: iptables-save > /etc/sysconfig/iptables
+  changed_when: False
+  when: ansible_os_family == 'RedHat'

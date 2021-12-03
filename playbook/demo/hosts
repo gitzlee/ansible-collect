@@ -1,0 +1,13 @@
+# Define localhost to use local connection
+localhost ansible_connection=local
+
+
+# User defined host inventory
+[demo:vars]
+ansible_user=root
+ansible_ssh_pass=******
+
+
+[demo]
+zilipy ansible_ssh_host=192.168.3.130 ansible_ssh_port=22130
+

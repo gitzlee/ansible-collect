@@ -1,0 +1,121 @@
+---
+- name: Check if RKE binary exists
+  stat:
+    path: /usr/local/bin/rke
+  register: rke_stat
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Get RKE version
+  command: /usr/local/bin/rke --version
+  register: rke_existing_version
+  when: rke_stat.stat.exists
+  changed_when: False
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Download RKE binary
+  get_url:
+    url: "{{ rke_binary_url }}"
+    dest: /usr/local/bin/rke
+    mode: '+rx'
+    force: True
+  register: rke_binary
+  when: not rke_stat.stat.exists or rke_version not in rke_existing_version.stdout
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Ensure config directory exists
+  file:
+    path: "{{ _rke_config_dir }}"
+    state: directory
+    owner: "{{ rke_user }}"
+    group: "{{ rke_user }}"
+    mode: '0755'
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Create the cluster configuration file
+  template:
+    src: templates/cluster.yml.j2
+    dest: "{{ _rke_config_dir }}/cluster.yml"
+    owner: "{{ rke_user }}"
+    group: "{{ rke_user }}"
+    mode: '0644'
+  register: rke_cluster_config
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Deploy Kubernetes with RKE
+  become: yes
+  become_user: "{{ rke_user }}"
+  shell: |
+    set -eo pipefail
+    if {{ rke_update_only }}; then
+      /usr/local/bin/rke up --update-only | tee rke-up.log
+    else
+      /usr/local/bin/rke up | tee rke-up.log
+    fi
+  args:
+    executable: /bin/bash
+    chdir: "{{ _rke_config_dir }}"
+  when: rke_binary is changed or rke_cluster_config is changed
+  changed_when: False
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Check deploy Kubernetes with RKE
+  lineinfile:
+    path: "{{ _rke_config_dir }}/rke-up.log"
+    regexp: 'Finished building Kubernetes cluster successfully'
+    state: absent
+  check_mode: True
+  register: rke_up_successfully
+  changed_when: False
+  failed_when: rke_up_successfully is failed or not rke_up_successfully.found
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Check if kube config exists
+  stat:
+    path: "{{ _rke_config_dir }}/kube_config_cluster.yml"
+  register: rke_config_check
+  until: rke_config_check.stat.exists
+  retries: 10
+  delay: 5
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Check if kubectl binary exists
+  stat:
+    path: /usr/local/bin/kubectl
+  register: kubectl_stat
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Install kubectl
+  get_url:
+    url: "{{ kubectl_binary_url }}"
+    dest: /usr/local/bin/kubectl
+    mode: "+rx"
+    force: True
+  when: not kubectl_stat.stat.exists
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Ensure $HOME/.kube exists
+  file:
+    path: ~/.kube
+    state: directory
+    mode: '0755'
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"
+
+- name: Copy kubeconfig to default location
+  copy:
+    remote_src: True
+    src: "{{ _rke_config_dir }}/kube_config_cluster.yml"
+    dest: ~/.kube/config
+    mode: '0644'
+  run_once: True
+  delegate_to: "{{ rke_controller_node }}"

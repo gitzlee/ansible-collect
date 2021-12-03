@@ -1,0 +1,8 @@
+- name: Sysctl settings for k8s
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/99-k8s-cri.conf
+    reload: True
+    state: present
+  loop: "{{ k8s_sysctl_config | dict2items }}"

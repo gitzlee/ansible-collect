@@ -1,0 +1,15 @@
+---
+k8s_sysctl_config:
+  net.bridge.bridge-nf-call-iptables: 1
+  net.bridge.bridge-nf-call-ip6tables: 1
+  net.bridge.bridge-nf-call-arptables: 1
+  net.ipv4.ip_forward: 1
+  vm.swappiness: 0
+
+addtional_sysctl_conf: # not apply yet
+  vm.overcommit_memory: 1 # 0
+  kernel.panic: 10 # 0
+  kernel.panic_on_oops: 1 # 1
+  fs.inotify.max_user_watches: 524288 # 8192
+  fs.inotify.max_user_instances: 8192 # 128
+  vm.max_map_count: 524288 # 65530

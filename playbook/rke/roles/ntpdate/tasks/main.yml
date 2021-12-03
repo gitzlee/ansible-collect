@@ -1,0 +1,27 @@
+---
+- name: Set timezone
+  timezone:
+    name: "{{ ntp_timezone }}"
+
+- name: Install ntpdate
+  package:
+    name: ntpdate
+    state: present
+
+- name: Check if ntpdate is needed
+  command: "ntpdate -q {{ ntp_server }}"
+  register: ntpdate_query
+  changed_when: False
+
+- name: Run ntpdate to synchronize server with {{ ntp_server }}
+  command: "ntpdate -s -b -u {{ ntp_server }}"
+  when: ntpdate_query.stdout is not regex('offset -?0.[0-9]* sec')
+  ignore_errors: yes
+
+- name: Create cronjob to update time every hour
+  template:
+    src: ntpdate.j2
+    dest: /etc/cron.hourly/ntpdate
+    owner: root
+    group: root
+    mode: 0755

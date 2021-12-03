@@ -1,0 +1,56 @@
+---
+# Only works for Centos 7.x
+## ***************************** install ************************ ##
+## 1. upload these files to one of master nodes according to env  ##
+## 2. replace real ssh password in file hosts-${env}              ##
+## 3. yum install ansible python-netaddr -y                       ##
+## 4. ansible-playbook -i hosts-${env} -e env=${env }main.yml -vv ##
+## ************************************************************** ##
+
+## ************************** update-only ******************************************** ##
+## ansible-playbook -i hosts-${env} main.yml -e env=${env} -e rke_update_only=True -vv ##
+## *********************************************************************************** ##
+- name: Manage K8s with RKE
+  hosts: k8s
+  gather_facts: yes
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  vars:
+    rke_update_only: False
+    rke_force_uninstall: False
+
+  pre_tasks:
+    - name: Set rke facts
+      set_fact:
+        rke_cluster_network_cidr: "{% if env == 'prod' %}10.11.0.0/16{% elif env == 'test' %}10.21.0.0/16{% elif env == 'dev' %}10.31.0.0/16{% else %}10.31.0.0/16{% endif %}"
+        rke_service_network_cidr: "{% if env == 'prod' %}10.12.0.0/16{% elif env == 'test' %}10.22.0.0/16{% elif env == 'dev' %}10.32.0.0/16{% else %}10.32.0.0/16{% endif %}"
+        rke_authentication_ip: "{% if env == 'prod' %}192.168.1.160{% elif env == 'test' %}192.168.2.30{% elif env == 'dev' %}192.168.6.60{% else %}192.168.1.160{% endif %}"
+        rke_authentication_domain: "{% if env == 'prod' %}k8s-prod.jkservice.org{% elif env == 'test' %}k8s-test.jkservice.org{% elif env == 'dev' %}k8s-dev.jkservice.org{% else %}k8s.jkservice.org{% endif %}"
+
+    - name: Load variables
+      include_vars: vars/main.yml
+
+  roles:
+    - {role: hostname, when: not rke_force_uninstall}
+    - {role: firewalld, firewalld_enabled: False, when: not rke_force_uninstall}
+    - {role: selinux, when: not rke_force_uninstall}
+    - {role: ulimit, when: not rke_force_uninstall}
+    - {role: swap, when: not rke_force_uninstall}
+    - {role: modules, when: not rke_force_uninstall}
+    - {role: sysctl, when: not rke_force_uninstall}
+    - {role: ntpdate, when: not rke_force_uninstall}
+    - {role: docker, when: not rke_force_uninstall}
+
+  tasks:
+    - block:
+        - include_tasks: tasks/evaluate_node_groups.yml
+        - include_tasks: tasks/prerequisites.yml
+        - include_tasks: tasks/deploy_cluster.yml
+      when: not rke_force_uninstall
+
+    - block:
+        - include_tasks: remove_cluster.yml
+      when: rke_force_uninstall
+

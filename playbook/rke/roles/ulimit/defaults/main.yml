@@ -1,0 +1,22 @@
+---
+ulimit_folder: "/etc/security/limits.d/"
+
+ulimit_config:
+  - name: system-global
+    limits:
+      - domain: "*"
+        type: soft
+        item: noproc
+        value:  unlimited
+      - domain: "*"
+        type: hard
+        item: noproc
+        value:  unlimited
+      - domain: "*"
+        type: soft
+        item: nofile
+        value:  1048576
+      - domain: "*"
+        type: hard
+        item: nofile
+        value:  1048576

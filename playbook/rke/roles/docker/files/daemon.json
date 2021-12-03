@@ -1,0 +1,25 @@
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "50m",
+    "max-file": "2"
+  },
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "data-root": "/data/docker",
+  "default-ulimits": {
+    "nofile": {
+        "Hard": 524288,
+        "Name": "nofile",
+        "Soft": 524288
+    }
+  },
+  "storage-driver": "overlay2",
+  "storage-opts": [
+      "overlay2.override_kernel_check=true"
+  ],
+  "insecure-registries": ["http://harbor.jkservice.org"],
+  "registry-mirrors": [
+      "http://f1361db2.m.daocloud.io",
+      "https://ustc-edu-cn.mirror.aliyuncs.com"
+  ]
+}

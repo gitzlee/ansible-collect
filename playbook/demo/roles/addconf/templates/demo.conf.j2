@@ -1,0 +1,9 @@
+# {{ dpa_ansible_create_demo }}
+
+server {
+    listen {{item.port}};
+    server_name  {{item.cname}};
+    location / {
+      proxy_pass {{item.domain}};
+    }
+}

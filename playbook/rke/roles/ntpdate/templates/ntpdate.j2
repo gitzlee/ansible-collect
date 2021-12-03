@@ -1,0 +1,9 @@
+#!/bin/bash
+/usr/sbin/ntpdate -s -u {{ ntp_server }}
+exit_code=$?
+
+if (( exit_code != 0 )); then
+        logger -t ntpdate "Could not update time by ntpdate via Cron. Exit code $exit_code."
+fi
+
+exit 0

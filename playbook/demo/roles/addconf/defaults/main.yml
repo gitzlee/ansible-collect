@@ -1,0 +1,12 @@
+---
+#demo_file_dir: "/tmp"
+
+demo_file_data:
+  - name: dpa-ansible-demo
+    sites:
+    - domain: jkstack.com
+      cname: jkstack
+      port: 80
+    - domain: demo.com
+      cname: demo
+      port: 8080

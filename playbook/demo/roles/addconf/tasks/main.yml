@@ -1,0 +1,11 @@
+---
+- name: demo file
+  template:
+    src: demo.conf.j2
+    dest: "{{ demo_file_dir }}/{{item.cname}}.conf"
+    owner: root
+    group: root
+    force: yes
+    mode: 0644
+  with_items: "{{ demo_file_data }}"
+  when: item.sites is defined
